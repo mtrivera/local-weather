@@ -1,11 +1,11 @@
 function getLocation() {
   if (navigator.geolocation) {
-     navigator.geolocation.getCurrentPosition(function(position) {
-       var lat = position.coords.latitude;
-       var long = position.coords.longitude;
-       getWeather(lat, long);
-        //console.log(getWeather(lat, long));
-       //console.log(position.coords.latitude, position.coords.longitude);
+    navigator.geolocation.getCurrentPosition(function(position) {
+      var lat = position.coords.latitude;
+      var long = position.coords.longitude;
+      getWeather(lat, long);
+      //console.log(getWeather(lat, long));
+      //console.log(position.coords.latitude, position.coords.longitude);
     });
   } else {
     alert('Geolocation not supported. Please enable it');
@@ -14,39 +14,37 @@ function getLocation() {
 
 function getWeather(lat, long) {
   $.ajax({
-    url: 'https://fcc-weather-api.glitch.me/api/current?', 
+    url: 'https://fcc-weather-api.glitch.me/api/current?',
     data: {
       lat: lat,
       lon: long
     },
     type: 'GET',
     dataType: 'json',
-    success: function(weatherData) { 
+    success: function(weatherData) {
       //create setWeather function that contains all this
       var $city = $('#city');
       var $temp = $('#temperature');
       var $icon = $('#icon');
       var $desc = $('#description');
       var $convertBtn = $('.convert-btn');
-      var weatherUnit = '';
-      
+      var isMetric = false;
+
       // United States, Libera, and Myanmar use the Imperial Unit system
       if (weatherData.sys.country === 'US' ||
          weatherData.sys.country === 'MM' ||
          weatherData.sys.country === 'LR') {
-              weatherUnit = 'F'; 
-             $temp.text('').append(celToFah(weatherData.main.temp) +  ' &deg;' + weatherUnit); 
-             $convertBtn.text('Convert to Celsius');
-      } else {
-        weatherUnit = 'C';
-        $temp.text('').append(fahToCel(weatherData.main.temp) +  ' &deg;' + weatherUnit);
-        $convertBtn.text('Convert to Fahrenheit');
+          $temp.text('').append(celToFah(weatherData.main.temp) +  ' &deg;' + 'F');
+          $convertBtn.text('Convert to Celsius');
+          isMetric = false;
       }
+
       $city.append(weatherData.name);
       $icon.append('<img src=' + weatherData.weather[0].icon + '>');
       $desc.append(weatherData.weather[0].description);
-      getReading(weatherData.main.temp, weatherUnit);
-        }
+      
+      getReading(weatherData.main.temp, isMetric);
+    }
   });
 }
 
@@ -58,21 +56,20 @@ function fahToCel(fah) {
   return Math.floor((fah - 32) * (5 / 9));
 }
 
-function getReading(temp, wunit) {
-
-  let $conBtn = $('button'); 
+function getReading(temp, metric) {
+  let $conBtn = $('button');
   let $conBtnTxt = $('button').text();
   let $temp = $('#temperature');
 
-  $conBtn.on('click', function() {
-    if (wunit === 'F') {
-        $temp.text('').append(celToFah(temp) + ' &deg;' + wunit);
-        wunit = 'C';
-        $conBtn.text('').text('Convert to Celsius');
+  $conBtn.on('click', function(e) {
+    if (metric) {
+      $temp.text('').append(celToFah(temp) + ' &deg;' + 'F');
+      $conBtn.text('').text('Convert to Celsius');
+      metric = false;
     } else {
-        $temp.text('').append(fahToCel(temp) + ' &deg;' + wunit);
-        wunit = 'F';
-        $conBtn.text('').text('Convert to Fahrenheit');
+      $temp.text('').append(Math.floor(temp) + ' &deg;' + 'C');
+      $conBtn.text('').text('Convert to Fahrenheit');
+      metric = true;
     }
   });
 }
